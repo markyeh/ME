@@ -1,5 +1,6 @@
 <script>
   export let lang = 'en';
+  export let isDarkMode = true;
 
   let h = 0, m = 5, s = 0;
   let totalSeconds = 0;
@@ -82,26 +83,28 @@
 
 <style>
   .card-wrapper {
-    background: #1e293b;
+    background: var(--bg-color);
     padding: 1.5rem;
-    border-radius: 1rem;
-    border: 1px solid #334155;
+    border: 1px solid var(--border-color);
+    border-radius: 0;
   }
   .timer-input-group { display: flex; gap: 1rem; margin: 1rem 0; }
   .input-item { display: flex; align-items: center; gap: 0.3rem; }
   input {
     width: 50px;
     padding: 0.5rem;
-    border-radius: 0.4rem;
-    border: 1px solid #334155;
-    background: #0f172a;
-    color: white;
+    border-radius: 0;
+    border: 1px solid var(--border-color);
+    background: transparent;
+    color: var(--text-color);
   }
-  .start-btn { width: 100%; background: #38bdf8; border: none; padding: 0.8rem; border-radius: 0.5rem; font-weight: bold; cursor: pointer; }
-  .stop-btn { width: 100%; background: #ef4444; border: none; padding: 0.8rem; border-radius: 0.5rem; font-weight: bold; cursor: pointer; color: white; }
+  .start-btn { width: 100%; background: var(--text-color); color: var(--bg-color); border: 1px solid var(--text-color); padding: 0.8rem; border-radius: 0; font-weight: bold; cursor: pointer; }
+  .stop-btn { width: 100%; background: transparent; border: 1px solid #ef4444; padding: 0.8rem; border-radius: 0; font-weight: bold; cursor: pointer; color: #ef4444; }
+  .start-btn:hover { background: transparent; color: var(--text-color); }
+  
   .countdown-section { text-align: center; margin-top: 2rem; }
-  .timer-display { font-size: 3rem; font-family: monospace; color: #38bdf8; }
-  h3 { margin-top: 0; color: #94a3b8; font-size: 1rem; }
-  span { color: #94a3b8; font-size: 0.8rem; }
-  p { color: #94a3b8; margin-bottom: 0.5rem; }
+  .timer-display { font-size: 3.5rem; font-family: 'Courier New', monospace; font-weight: 200; color: var(--text-color); }
+  h3 { margin-top: 0; color: var(--text-color); font-size: 0.8rem; letter-spacing: 0.2em; text-transform: uppercase; }
+  span { color: var(--text-color); font-size: 0.8rem; opacity: 0.5; }
+  p { color: var(--text-color); opacity: 0.6; font-size: 0.8rem; margin-bottom: 0.5rem; }
 </style>

@@ -3,30 +3,45 @@
   import Chart from 'chart.js/auto';
 
   export let lang = 'en';
+  export let isDarkMode = true;
 
-  let selectedMood = '';
-  let moodHistory = [3, 4, 2, 5]; // 範例預設值
+  let moodScore = 6; // 預設 6 分
+  let moodHistory = [3, 4, 2, 6]; // 範例預設值
   let chart;
   let canvasElement;
 
   const i18n = {
     zh: {
       title: "目前心情狀態",
-      placeholder: "現在感覺如何？",
-      happy: "✨ 開心", calm: "☁️ 平靜", sad: "🌧️ 沮喪",
-      btn: "紀錄心情", chartTitle: "心情走勢圖", label: "心情數值"
+      positive: "正面 ✨",
+      positiveNote: "(感恩、愛、慈悲)",
+      negative: "負面 🌧️",
+      negativeNote: "(焦慮、自責、悲傷、憤怒)",
+      btn: "紀錄心情", chartTitle: "心情走勢圖", label: "心情分數", record: "紀錄"
     },
     en: {
       title: "Current Mood",
-      placeholder: "How are you feeling?",
-      happy: "✨ Happy", calm: "☁️ Calm", sad: "🌧️ Sad",
-      btn: "Log Mood", chartTitle: "Mood Trend", label: "Mood Level"
+      positive: "Positive ✨",
+      positiveNote: "(Gratitude, Love, Compassion)",
+      negative: "Negative 🌧️",
+      negativeNote: "(Anxiety, Self-blame, Sadness, Anger)",
+      btn: "Log Mood", chartTitle: "Mood Trend", label: "Mood Score", record: "Record"
     }
   };
 
   // 當語系改變時更新圖表標籤
-  $: if (chart) {
+  $: if (chart && i18n[lang]) {
     chart.data.datasets[0].label = i18n[lang].label;
+    const textColor = isDarkMode ? '#fff' : '#000';
+    const gridColor = isDarkMode ? '#222' : '#eee';
+    
+    if (moodHistory) {
+      chart.data.labels = moodHistory.map((_, i) => `${i18n[lang].record} ${i + 1}`);
+    }
+    chart.options.scales.x.ticks.color = textColor;
+    chart.options.scales.y.ticks.color = textColor;
+    chart.options.scales.y.grid.color = gridColor;
+    chart.data.datasets[0].borderColor = textColor;
     chart.update();
   }
 
@@ -37,25 +52,35 @@
     chart = new Chart(ctx, {
       type: 'line',
       data: {
-        labels: moodHistory.map((_, i) => `紀錄 ${i + 1}`),
+        labels: moodHistory.map((_, i) => `${i18n[lang].record} ${i + 1}`),
         datasets: [{
           label: '心情數值',
           data: moodHistory,
-          borderColor: '#38bdf8',
+          borderColor: isDarkMode ? '#fff' : '#000',
+          borderWidth: 2,
+          pointBackgroundColor: isDarkMode ? '#fff' : '#000',
           tension: 0.4
         }]
       },
-      options: { responsive: true, maintainAspectRatio: false }
+      options: { 
+        responsive: true, 
+        maintainAspectRatio: false,
+        scales: {
+          y: {
+            min: 1,
+            max: 10,
+            ticks: { stepSize: 1 }
+          }
+        }
+      }
     });
   });
 
   function addMood() {
-    if (!selectedMood) return;
-    const val = parseInt(selectedMood);
-    moodHistory = [...moodHistory, val];
+    moodHistory = [...moodHistory, moodScore];
     
     // 更新圖表
-    chart.data.labels.push(`紀錄 ${moodHistory.length}`);
+    chart.data.labels.push(`${i18n[lang].record} ${moodHistory.length}`);
     chart.data.datasets[0].data = moodHistory;
     chart.update();
   }
@@ -64,14 +89,18 @@
 <section class="card-wrapper">
   <div class="mood-container">
     <h3>{i18n[lang].title}</h3>
-    <div class="form-group">
-      <select bind:value={selectedMood}>
-        <option value="">{i18n[lang].placeholder}</option>
-        <option value="5">{i18n[lang].happy}</option>
-        <option value="3">{i18n[lang].calm}</option>
-        <option value="1">{i18n[lang].sad}</option>
-      </select>
-      <button on:click={addMood}>{i18n[lang].btn}</button>
+    <div class="mood-selector">
+      <div class="input-row">
+        <input type="range" min="1" max="10" bind:value={moodScore} />
+        <span class="score-display">{moodScore}</span>
+      </div>
+      
+      <div class="status-feedback" class:is-positive={moodScore >= 6}>
+        <strong>{moodScore >= 6 ? i18n[lang].positive : i18n[lang].negative}</strong>
+        <span class="note">{moodScore >= 6 ? i18n[lang].positiveNote : i18n[lang].negativeNote}</span>
+      </div>
+
+      <button class="submit-btn" on:click={addMood}>{i18n[lang].btn}</button>
     </div>
 
     <div class="chart-container">
@@ -85,29 +114,48 @@
 
 <style>
   .card-wrapper {
-    background: #1e293b;
+    background: var(--bg-color);
     padding: 1.5rem;
-    border-radius: 1rem;
-    border: 1px solid #334155;
+    border: 1px solid var(--border-color);
+    border-radius: 0;
   }
-  .form-group { display: flex; gap: 0.5rem; margin-bottom: 2rem; }
-  select {
+  .mood-selector { display: flex; flex-direction: column; gap: 1rem; margin-bottom: 2rem; }
+  .input-row { display: flex; align-items: center; gap: 1rem; }
+  input[type="range"] {
     flex: 1;
-    padding: 0.5rem;
-    border-radius: 0.5rem;
-    background: #0f172a;
-    color: white;
-    border: 1px solid #334155;
+    accent-color: var(--text-color);
   }
-  button {
-    background: #38bdf8;
-    color: #0f172a;
-    border: none;
-    padding: 0.5rem 1rem;
-    border-radius: 0.5rem;
+  .score-display {
+    font-size: 1.5rem;
+    font-weight: 200;
+    color: var(--text-color);
+    min-width: 2rem;
+  }
+  .status-feedback {
+    padding: 0.75rem;
+    border: 1px solid var(--border-color);
+    transition: all 0.3s;
+  }
+  .note {
+    display: block;
+    font-size: 0.85rem;
+    opacity: 0.6;
+    margin-top: 0.25rem;
+  }
+  .submit-btn {
+    background: var(--text-color);
+    color: var(--bg-color);
+    border: 1px solid var(--text-color);
+    padding: 0.75rem 1rem;
+    border-radius: 0;
     font-weight: bold;
     cursor: pointer;
+    letter-spacing: 0.1em;
   }
-  .canvas-wrapper { height: 200px; width: 100%; }
-  h3 { margin-top: 0; color: #94a3b8; font-size: 1rem; }
+  .submit-btn:hover {
+    background: transparent;
+    color: var(--text-color);
+  }
+  .canvas-wrapper { height: 200px; width: 100%; filter: grayscale(1); }
+  h3 { margin-top: 0; color: var(--text-color); font-size: 0.8rem; letter-spacing: 0.2em; text-transform: uppercase; }
 </style>

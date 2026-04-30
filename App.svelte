@@ -3,29 +3,39 @@
   import MoodTracker from './components/MoodTracker.svelte';
   import Timer from './components/Timer.svelte';
 
-  let appName = "MindfulApp";
+  let appName = "ME";
   let lang = 'en'; // 預設語系為英文
+  let isDarkMode = true; // 預設為黑底白色
 </script>
 
-<div class="modern-app">
-  <Header {appName} bind:lang />
+<div class="modern-app" class:light-mode={!isDarkMode}>
+  <Header {appName} bind:lang bind:isDarkMode />
 
   <main class="dashboard-grid">
-    <MoodTracker {lang} />
-    <Timer {lang} />
+    <MoodTracker {lang} {isDarkMode} />
+    <Timer {lang} {isDarkMode} />
   </main>
 </div>
 
 <style>
-  :global(body) {
-    background-color: #0f172a;
-    color: #f8fafc;
-    font-family: 'Inter', system-ui, sans-serif;
-    margin: 0;
+  .modern-app {
+    --bg-color: #000;
+    --text-color: #fff;
+    --border-color: #333;
+    min-height: 100vh;
+    background-color: var(--bg-color);
+    color: var(--text-color);
   }
 
-  .modern-app {
-    min-height: 100vh;
+  .modern-app.light-mode {
+    --bg-color: #fff;
+    --text-color: #000;
+    --border-color: #ddd;
+  }
+
+  :global(body) {
+    font-family: 'Inter', system-ui, sans-serif;
+    margin: 0;
   }
 
   .dashboard-grid {
