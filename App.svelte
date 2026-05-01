@@ -5,15 +5,15 @@
 
   let appName = "ME";
   let lang = 'en'; // 預設語系為英文
-  let isDarkMode = true; // 預設為黑底白色
+  let theme = 'zen'; // 'light', 'dark', or 'zen'
 </script>
 
-<div class="modern-app" class:light-mode={!isDarkMode}>
-  <Header {appName} bind:lang bind:isDarkMode />
+<div class="modern-app" class:light-mode={theme === 'light'} class:zen-mode={theme === 'zen'}>
+  <Header {appName} bind:lang bind:theme />
 
   <main class="dashboard-grid">
-    <MoodTracker {lang} {isDarkMode} />
-    <Timer {lang} {isDarkMode} />
+    <MoodTracker {lang} {theme} />
+    <Timer {lang} {theme} />
   </main>
 </div>
 
@@ -31,6 +31,12 @@
     --bg-color: #fff;
     --text-color: #000;
     --border-color: #ddd;
+  }
+
+  .modern-app.zen-mode {
+    --bg-color: #f5f2ed;
+    --text-color: #433d3c;
+    --border-color: #dcd5c9;
   }
 
   :global(body) {

@@ -3,7 +3,7 @@
   import Chart from 'chart.js/auto';
 
   export let lang = 'en';
-  export let isDarkMode = true;
+  export let theme = 'zen';
 
   let moodScore = 6; // 預設 6 分
   let currentNote = ""; // 用於綁定輸入框
@@ -50,8 +50,9 @@
   // 當語系改變時更新圖表標籤
   $: if (chart && i18n[lang]) {
     chart.data.datasets[0].label = i18n[lang].label;
-    const textColor = isDarkMode ? '#fff' : '#000';
-    const gridColor = isDarkMode ? '#222' : '#eee';
+    const isDark = theme === 'dark';
+    const textColor = isDark ? '#fff' : (theme === 'zen' ? '#433d3c' : '#000');
+    const gridColor = isDark ? '#222' : (theme === 'zen' ? '#dcd5c9' : '#eee');
     
     if (moodHistory) {
       chart.data.labels = moodHistory.map(entry => formatTime(entry.time));
@@ -74,9 +75,9 @@
         datasets: [{
           label: '心情數值',
           data: moodHistory.map(entry => entry.score),
-          borderColor: isDarkMode ? '#fff' : '#000',
+          borderColor: theme === 'dark' ? '#fff' : (theme === 'zen' ? '#433d3c' : '#000'),
           borderWidth: 2,
-          pointBackgroundColor: isDarkMode ? '#fff' : '#000',
+          pointBackgroundColor: theme === 'dark' ? '#fff' : (theme === 'zen' ? '#433d3c' : '#000'),
           tension: 0.4
         }]
       },

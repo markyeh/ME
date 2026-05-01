@@ -1,7 +1,7 @@
 <script>
   import { onMount } from 'svelte';
   export let lang = 'en';
-  export let isDarkMode = true;
+  export let theme = 'zen';
 
   let h = 0, m = 5, s = 0;
   let initialSeconds = 0;

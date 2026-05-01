@@ -1,7 +1,7 @@
 <script>
   export let appName = "ME";
   export let lang = 'en';
-  export let isDarkMode = true;
+  export let theme = 'zen';
 
   let showMenu = false;
 
@@ -15,6 +15,12 @@
       confirmReset: "Are you sure you want to reset all data? This will delete all mood records and timer history."
     }
   };
+
+  function toggleTheme() {
+    if (theme === 'light') theme = 'dark';
+    else if (theme === 'dark') theme = 'zen';
+    else theme = 'light';
+  }
 
   function resetAllData() {
     if (confirm(i18n[lang].confirmReset)) {
@@ -37,8 +43,8 @@
     {/if}
   </div>
   <div class="nav-controls">
-    <button class="theme-toggle" on:click={() => isDarkMode = !isDarkMode}>
-      {isDarkMode ? 'LIGHT' : 'DARK'}
+    <button class="theme-toggle" on:click={toggleTheme}>
+      {theme === 'zen' ? 'ZEN' : theme.toUpperCase()}
     </button>
     <div class="lang-switcher">
       <button class:active={lang === 'zh'} on:click={() => lang = 'zh'}>ZH</button>
@@ -85,6 +91,7 @@
     z-index: 100;
     min-width: 150px;
     box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    padding: 0.5rem 0;
   }
   .menu-item {
     width: 100%;
@@ -92,9 +99,15 @@
     border: none;
     padding: 0.75rem 1rem;
     border-radius: 0;
+    font-size: 0.8rem;
+    cursor: pointer;
+    background: transparent;
+    color: var(--text-color);
   }
+  .menu-item:hover { background: var(--border-color); }
   .menu-item.reset-all { color: #ef4444; }
   .menu-item.reset-all:hover { background: #ef4444; color: white; }
+  .divider { height: 1px; background: var(--border-color); margin: 0.25rem 0; }
 
   .nav-controls { display: flex; align-items: center; gap: 1.5rem; }
   .lang-switcher { display: flex; gap: 0.25rem; }
