@@ -1,24 +1,64 @@
 <script>
+  import { onMount } from 'svelte';
   export let lang = 'en';
   export let isDarkMode = true;
 
   let h = 0, m = 5, s = 0;
+  let initialSeconds = 0;
   let totalSeconds = 0;
   let timerInterval;
   let isRunning = false;
+  let triggerTimes = [];
+  let chime;
+
+  const mindfulnessPhrases = {
+    zh: [
+      "深呼吸，感受當下 ✨",
+      "保持覺知，回到呼吸 🧘",
+      "心如止水，身心安適 🌊",
+      "專注當下，放鬆身心 🌿",
+      "內在平靜，慈悲喜捨 🕊️",
+      "覺察呼吸，活在當下 🕯️",
+      "溫柔對待自己的心 ❤️"
+    ],
+    en: [
+      "Deep breath, be present ✨",
+      "Stay aware, return to breath 🧘",
+      "Mind like water, peaceful body 🌊",
+      "Focus on now, relax completely 🌿",
+      "Inner peace and joy 🕊️",
+      "Be gentle with your mind ❤️"
+    ]
+  };
+
+  onMount(() => {
+    // 初始化音效，路徑指向 public/audio/chime.mp3
+    chime = new Audio('/audio/chime.mp3');
+    
+    // 加入除錯監聽
+    chime.addEventListener('error', (e) => {
+      console.error("❌ 音效載入失敗！");
+      console.error("請確認檔案是否存在於：public/audio/chime.mp3");
+      console.error("目前的錯誤訊息：", chime.error);
+    });
+  });
 
   const i18n = {
     zh: {
       setting: "正念提醒設定",
       start: "開始計時", stop: "停止",
       remaining: "剩餘時間",
-      alert: "時間到！請深呼吸，保持正念 ✨"
+      alert: "時間到！請深呼吸，保持正念 ✨",
+      triggeredAt: "觸發時間",
+      noTriggers: "尚未觸發",
     },
     en: {
       setting: "Mindfulness Timer",
       start: "Start Timer", stop: "Stop",
       remaining: "Time Remaining",
-      alert: "Time's up! Take a deep breath and stay mindful ✨"
+      alert: "Time's up! Take a deep breath and stay mindful ✨",
+      triggeredAt: "Triggered At",
+      noTriggers: "No triggers yet"
     }
   };
 
@@ -32,19 +72,36 @@
     return [hours, minutes, seconds].map(v => v.toString().padStart(2, '0')).join(':');
   }
 
+  function formatTriggerTime(date) {
+    return date.toLocaleTimeString(lang === 'zh' ? 'zh-TW' : 'en-US', {
+      hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false
+    });
+  }
+
   function startTimer() {
     if (isRunning) return;
-    totalSeconds = h * 3600 + m * 60 + s;
-    if (totalSeconds <= 0) return;
+    initialSeconds = h * 3600 + m * 60 + s;
+    totalSeconds = initialSeconds;
+    if (initialSeconds <= 0) return;
 
     isRunning = true;
     timerInterval = setInterval(() => {
       if (totalSeconds > 0) {
         totalSeconds -= 1;
       } else {
-        clearInterval(timerInterval);
-        isRunning = false;
-        alert(i18n[lang].alert);
+        // 播放音效並重置進度
+        const phrases = mindfulnessPhrases[lang] || mindfulnessPhrases.en;
+        const randomPhrase = phrases[Math.floor(Math.random() * phrases.length)];
+        
+        triggerTimes = [{ time: new Date(), phrase: randomPhrase }, ...triggerTimes];
+
+        if (chime) {
+          chime.currentTime = 0;
+          chime.play().catch(e => console.warn("播放被阻擋或失敗:", e));
+        }
+
+        // 自動重啟：將時間設回初始值並繼續計時
+        totalSeconds = initialSeconds;
       }
     }, 1000);
   }
@@ -79,9 +136,27 @@
     <p>{i18n[lang].remaining}</p>
     <div class="timer-display">{display}</div>
   </div>
+
+  <!-- 新增的觸發時間統計區塊 -->
+  <div class="trigger-history-section">
+    <h4>{i18n[lang].triggeredAt}</h4>
+    {#if triggerTimes.length === 0}
+      <p class="no-triggers">{i18n[lang].noTriggers}</p>
+    {:else}
+      <ul class="trigger-list">
+        {#each triggerTimes as entry (entry.time.getTime())}
+          <li>
+            <span class="time-stamp">{formatTriggerTime(entry.time)}</span>
+            <span class="phrase-text">{entry.phrase}</span>
+          </li>
+        {/each}
+      </ul>
+    {/if}
+  </div>
 </section>
 
 <style>
+  /* Existing styles */
   .card-wrapper {
     background: var(--bg-color);
     padding: 1.5rem;
@@ -107,4 +182,61 @@
   h3 { margin-top: 0; color: var(--text-color); font-size: 0.8rem; letter-spacing: 0.2em; text-transform: uppercase; }
   span { color: var(--text-color); font-size: 0.8rem; opacity: 0.5; }
   p { color: var(--text-color); opacity: 0.6; font-size: 0.8rem; margin-bottom: 0.5rem; }
+
+  /* New styles for trigger history section */
+  .trigger-history-section {
+    margin-top: 2rem;
+    padding-top: 1rem;
+    border-top: 1px solid var(--border-color);
+  }
+  .trigger-history-section h4 {
+    color: var(--text-color);
+    font-size: 0.9rem;
+    margin-bottom: 0.8rem;
+    text-align: center;
+  }
+  .trigger-list {
+    margin-top: 1rem;
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    max-height: 150px; /* Limit height for long lists */
+    overflow-y: auto; /* Add scroll if list is too long */
+    border: 1px solid var(--border-color);
+    border-radius: 0;
+    background: transparent;
+  }
+  .trigger-list li {
+    display: flex;
+    justify-content: flex-start;
+    align-items: center;
+    gap: 1rem;
+    padding: 0.5rem 1rem;
+    border-bottom: 1px solid var(--border-color);
+    color: var(--text-color);
+    font-size: 0.9rem;
+  }
+  .time-stamp {
+    font-family: 'Courier New', monospace;
+    opacity: 0.7;
+    white-space: nowrap;
+  }
+  .phrase-text {
+    font-weight: 500;
+  }
+  .trigger-list li:last-child {
+    border-bottom: none;
+  }
+  .no-triggers {
+    border: 1px dashed var(--border-color);
+    background: transparent;
+    text-align: center;
+    font-style: italic;
+    color: var(--text-color);
+    opacity: 0.7;
+    margin-top: 1rem;
+    padding: 0.5rem 1rem;
+    border-radius: 0;
+    font-size: 0.9rem;
+  }
 </style>
