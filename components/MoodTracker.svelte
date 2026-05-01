@@ -6,7 +6,8 @@
   export let isDarkMode = true;
 
   let moodScore = 6; // 預設 6 分
-  let moodHistory = [3, 4, 2, 6]; // 範例預設值
+  let currentNote = ""; // 用於綁定輸入框
+  let moodHistory = [];
   let chart;
   let canvasElement;
 
@@ -17,7 +18,8 @@
       positiveNote: "(感恩、愛、慈悲)",
       negative: "負面 🌧️",
       negativeNote: "(焦慮、自責、悲傷、憤怒)",
-      btn: "紀錄心情", chartTitle: "心情走勢圖", label: "心情分數", record: "紀錄"
+      btn: "紀錄心情", chartTitle: "心情走勢圖", label: "心情分數", record: "紀錄",
+      notePlaceholder: "寫下現在的想法..."
     },
     en: {
       title: "Current Mood",
@@ -25,9 +27,16 @@
       positiveNote: "(Gratitude, Love, Compassion)",
       negative: "Negative 🌧️",
       negativeNote: "(Anxiety, Self-blame, Sadness, Anger)",
-      btn: "Log Mood", chartTitle: "Mood Trend", label: "Mood Score", record: "Record"
+      btn: "Log Mood", chartTitle: "Mood Trend", label: "Mood Score", record: "Record",
+      notePlaceholder: "Write down your thoughts..."
     }
   };
+
+  function formatTime(date) {
+    return date.toLocaleTimeString(lang === 'zh' ? 'zh-TW' : 'en-US', {
+      hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false
+    });
+  }
 
   // 當語系改變時更新圖表標籤
   $: if (chart && i18n[lang]) {
@@ -36,7 +45,7 @@
     const gridColor = isDarkMode ? '#222' : '#eee';
     
     if (moodHistory) {
-      chart.data.labels = moodHistory.map((_, i) => `${i18n[lang].record} ${i + 1}`);
+      chart.data.labels = moodHistory.map(entry => formatTime(entry.time));
     }
     chart.options.scales.x.ticks.color = textColor;
     chart.options.scales.y.ticks.color = textColor;
@@ -52,10 +61,10 @@
     chart = new Chart(ctx, {
       type: 'line',
       data: {
-        labels: moodHistory.map((_, i) => `${i18n[lang].record} ${i + 1}`),
+        labels: moodHistory.map(entry => formatTime(entry.time)),
         datasets: [{
           label: '心情數值',
-          data: moodHistory,
+          data: moodHistory.map(entry => entry.score),
           borderColor: isDarkMode ? '#fff' : '#000',
           borderWidth: 2,
           pointBackgroundColor: isDarkMode ? '#fff' : '#000',
@@ -71,18 +80,32 @@
             max: 10,
             ticks: { stepSize: 1 }
           }
+        },
+        plugins: {
+          tooltip: {
+            callbacks: {
+              label: (context) => {
+                const entry = moodHistory[context.dataIndex];
+                const scoreLabel = `${i18n[lang].label}: ${entry.score}`;
+                return entry.note ? [scoreLabel, `Note: ${entry.note}`] : scoreLabel;
+              }
+            }
+          }
         }
       }
     });
   });
 
   function addMood() {
-    moodHistory = [...moodHistory, moodScore];
+    const newEntry = { score: moodScore, time: new Date(), note: currentNote };
+    moodHistory = [...moodHistory, newEntry];
     
-    // 更新圖表
-    chart.data.labels.push(`${i18n[lang].record} ${moodHistory.length}`);
-    chart.data.datasets[0].data = moodHistory;
+    chart.data.labels.push(formatTime(newEntry.time));
+    chart.data.datasets[0].data.push(newEntry.score);
     chart.update();
+    
+    // 清空輸入框
+    currentNote = "";
   }
 </script>
 
@@ -99,6 +122,12 @@
         <strong>{moodScore >= 6 ? i18n[lang].positive : i18n[lang].negative}</strong>
         <span class="note">{moodScore >= 6 ? i18n[lang].positiveNote : i18n[lang].negativeNote}</span>
       </div>
+
+      <textarea 
+        class="mood-note-input" 
+        bind:value={currentNote} 
+        placeholder={i18n[lang].notePlaceholder}
+      ></textarea>
 
       <button class="submit-btn" on:click={addMood}>{i18n[lang].btn}</button>
     </div>
@@ -141,6 +170,15 @@
     font-size: 0.85rem;
     opacity: 0.6;
     margin-top: 0.25rem;
+  }
+  .mood-note-input {
+    background: transparent;
+    border: 1px solid var(--border-color);
+    color: var(--text-color);
+    padding: 0.75rem;
+    font-size: 0.9rem;
+    resize: vertical;
+    min-height: 60px;
   }
   .submit-btn {
     background: var(--text-color);

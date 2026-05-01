@@ -50,7 +50,7 @@
       remaining: "剩餘時間",
       alert: "時間到！請深呼吸，保持正念 ✨",
       triggeredAt: "觸發時間",
-      noTriggers: "尚未觸發",
+      noTriggers: "尚未觸發"
     },
     en: {
       setting: "Mindfulness Timer",
