@@ -7,6 +7,7 @@
   let initialSeconds = 3600;
   let totalSeconds = 3600;
   let timerInterval;
+  let titleInterval;
   let isRunning = false;
   // 初始化時從 localStorage 讀取紀錄，並將字串時間轉回 Date 物件
   let triggerTimes = JSON.parse(localStorage.getItem('timerHistory') || '[]').map(entry => ({
@@ -55,6 +56,14 @@
       console.error("請確認檔案是否存在於：public/audio/chime.mp3");
       console.error("目前的錯誤訊息：", chime.error);
     });
+
+    // 當使用者回到分頁時，停止標題閃爍
+    const handleFocus = () => stopTitleNotification();
+    window.addEventListener('focus', handleFocus);
+
+    return () => {
+      window.removeEventListener('focus', handleFocus);
+    };
   });
 
   const i18n = {
@@ -92,8 +101,29 @@
     });
   }
 
+  function startTitleNotification() {
+    if (titleInterval) return;
+    const originalTitle = document.title;
+    const alertText = `🔔 ${i18n[lang].alert.split('！')[0]}`;
+    let showMsg = true;
+    
+    titleInterval = setInterval(() => {
+      document.title = showMsg ? alertText : originalTitle;
+      showMsg = !showMsg;
+    }, 1000);
+  }
+
+  function stopTitleNotification() {
+    if (titleInterval) {
+      clearInterval(titleInterval);
+      titleInterval = null;
+      document.title = "Mindfulness Timer"; // 恢復為預設標題
+    }
+  }
+
   function startTimer() {
     if (isRunning) return;
+    stopTitleNotification();
     initialSeconds = h * 3600 + m * 60 + s;
     totalSeconds = initialSeconds;
     if (initialSeconds <= 0) return;
@@ -107,6 +137,9 @@
         const phrases = mindfulnessPhrases[lang] || mindfulnessPhrases.en;
         const randomPhrase = phrases[Math.floor(Math.random() * phrases.length)];
         
+        // 觸發標題閃爍提醒
+        startTitleNotification();
+
         triggerTimes = [{ time: new Date(), phrase: randomPhrase }, ...triggerTimes];
 
         if (chime) {
@@ -122,6 +155,7 @@
 
   function stopTimer() {
     clearInterval(timerInterval);
+    stopTitleNotification();
     isRunning = false;
   }
 </script>
