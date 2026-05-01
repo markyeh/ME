@@ -7,7 +7,11 @@
 
   let moodScore = 6; // 預設 6 分
   let currentNote = ""; // 用於綁定輸入框
-  let moodHistory = [];
+  // 初始化時嘗試從 localStorage 讀取紀錄
+  let moodHistory = JSON.parse(localStorage.getItem('moodHistory') || '[]').map(entry => ({
+    ...entry,
+    time: new Date(entry.time)
+  }));
   let chart;
   let canvasElement;
 
@@ -36,6 +40,11 @@
     return date.toLocaleTimeString(lang === 'zh' ? 'zh-TW' : 'en-US', {
       hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false
     });
+  }
+
+  // 當 moodHistory 變動時，自動儲存至 localStorage
+  $: if (moodHistory) {
+    localStorage.setItem('moodHistory', JSON.stringify(moodHistory));
   }
 
   // 當語系改變時更新圖表標籤

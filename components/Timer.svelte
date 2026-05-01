@@ -8,8 +8,17 @@
   let totalSeconds = 0;
   let timerInterval;
   let isRunning = false;
-  let triggerTimes = [];
+  // 初始化時從 localStorage 讀取紀錄，並將字串時間轉回 Date 物件
+  let triggerTimes = JSON.parse(localStorage.getItem('timerHistory') || '[]').map(entry => ({
+    ...entry,
+    time: new Date(entry.time)
+  }));
   let chime;
+
+  // 當計時紀錄變動時，自動同步至 localStorage
+  $: if (triggerTimes) {
+    localStorage.setItem('timerHistory', JSON.stringify(triggerTimes));
+  }
 
   const mindfulnessPhrases = {
     zh: [

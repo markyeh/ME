@@ -2,10 +2,40 @@
   export let appName = "ME";
   export let lang = 'en';
   export let isDarkMode = true;
+
+  let showMenu = false;
+
+  const i18n = {
+    zh: {
+      resetBtn: "重置所有資料",
+      confirmReset: "確定要重置所有資料嗎？這將刪除所有心情紀錄與計時歷史，且無法復原。"
+    },
+    en: {
+      resetBtn: "Reset All Data",
+      confirmReset: "Are you sure you want to reset all data? This will delete all mood records and timer history."
+    }
+  };
+
+  function resetAllData() {
+    if (confirm(i18n[lang].confirmReset)) {
+      localStorage.removeItem('moodHistory');
+      localStorage.removeItem('timerHistory');
+      window.location.reload();
+    }
+  }
 </script>
 
 <nav class="top-nav">
-  <h1 class="brand">{appName.slice(0, 1)}<span>{appName.slice(1)}</span></h1>
+  <div class="brand-container">
+    <h1 class="brand" on:click={() => showMenu = !showMenu} role="button" tabindex="0">
+      {appName.slice(0, 1)}<span>{appName.slice(1)}</span>
+    </h1>
+    {#if showMenu}
+      <div class="dropdown-menu">
+        <button class="menu-item reset-all" on:click={resetAllData}>{i18n[lang].resetBtn}</button>
+      </div>
+    {/if}
+  </div>
   <div class="nav-controls">
     <button class="theme-toggle" on:click={() => isDarkMode = !isDarkMode}>
       {isDarkMode ? 'LIGHT' : 'DARK'}
@@ -26,8 +56,46 @@
     align-items: center;
     border-bottom: 1px solid var(--border-color);
   }
-  .brand { font-size: 1.5rem; margin: 0; color: var(--text-color); }
+  .brand-container { position: relative; display: flex; align-items: center; }
+  .brand { 
+    font-size: 1.2rem; margin: 0; color: var(--text-color); 
+    cursor: pointer; user-select: none; 
+    transition: all 0.1s ease-in-out;
+    border: 1px solid var(--border-color);
+    padding: 0.3rem 0.8rem;
+    border-radius: 6px;
+    background: transparent;
+    display: flex;
+    align-items: center;
+    line-height: 1;
+  }
   .brand span { font-weight: 200; opacity: 0.7; }
+  .brand:hover {
+    background: var(--border-color);
+  }
+  .brand:active { transform: scale(0.95); }
+  
+  .dropdown-menu {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    background: var(--bg-color);
+    border: 1px solid var(--border-color);
+    margin-top: 0.5rem;
+    z-index: 100;
+    min-width: 150px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+  }
+  .menu-item {
+    width: 100%;
+    text-align: left;
+    border: none;
+    padding: 0.75rem 1rem;
+    border-radius: 0;
+  }
+  .menu-item.reset-all { color: #ef4444; }
+  .menu-item.reset-all:hover { background: #ef4444; color: white; }
+
   .nav-controls { display: flex; align-items: center; gap: 1.5rem; }
   .lang-switcher { display: flex; gap: 0.25rem; }
   
