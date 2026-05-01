@@ -64,8 +64,6 @@
     chart.update();
   }
 
-  // 【Svelte 語法教學 - onMount】
-  // 當組件渲染到畫面後執行。這對於需要操作 DOM 的外部套件（如 Chart.js）是必須的。
   onMount(() => {
     const ctx = canvasElement.getContext('2d');
     chart = new Chart(ctx, {

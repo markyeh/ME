@@ -107,7 +107,6 @@
   .menu-item:hover { background: var(--border-color); }
   .menu-item.reset-all { color: #ef4444; }
   .menu-item.reset-all:hover { background: #ef4444; color: white; }
-  .divider { height: 1px; background: var(--border-color); margin: 0.25rem 0; }
 
   .nav-controls { display: flex; align-items: center; gap: 1.5rem; }
   .lang-switcher { display: flex; gap: 0.25rem; }

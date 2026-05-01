@@ -3,9 +3,9 @@
   export let lang = 'en';
   export let theme = 'zen';
 
-  let h = 0, m = 5, s = 0;
-  let initialSeconds = 0;
-  let totalSeconds = 0;
+  let h = 1, m = 0, s = 0;
+  let initialSeconds = 3600;
+  let totalSeconds = 3600;
   let timerInterval;
   let isRunning = false;
   // 初始化時從 localStorage 讀取紀錄，並將字串時間轉回 Date 物件
@@ -18,6 +18,11 @@
   // 當計時紀錄變動時，自動同步至 localStorage
   $: if (triggerTimes) {
     localStorage.setItem('timerHistory', JSON.stringify(triggerTimes));
+  }
+
+  // 當不處於計時狀態時，同步更新顯示時間
+  $: if (!isRunning) {
+    totalSeconds = h * 3600 + m * 60 + s;
   }
 
   const mindfulnessPhrases = {
