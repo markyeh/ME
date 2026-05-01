@@ -3,7 +3,7 @@
 Mindfulness & Emotion Tracker.
 Minimalist. Zen. Private.
 
-Preview: https://markyeh.github.io/ME-static/
+Preview: https://markyeh.github.io/ME/
 
 ---
 
