@@ -15,6 +15,11 @@
   let chart;
   let canvasElement;
 
+  // 編輯狀態
+  let editingIndex = null;
+  let editScore = 6;
+  let editNote = "";
+
   const i18n = {
     zh: {
       title: "目前心情狀態",
@@ -23,7 +28,10 @@
       negative: "負面 🌧️",
       negativeNote: "(焦慮、自責、悲傷、憤怒)",
       btn: "紀錄心情", chartTitle: "心情走勢圖", label: "心情分數", record: "紀錄",
-      notePlaceholder: "寫下現在的想法..."
+      notePlaceholder: "寫下現在的想法...",
+      editTitle: "修改紀錄",
+      save: "儲存修改",
+      cancel: "取消"
     },
     en: {
       title: "Current Mood",
@@ -32,7 +40,10 @@
       negative: "Negative 🌧️",
       negativeNote: "(Anxiety, Self-blame, Sadness, Anger)",
       btn: "Log Mood", chartTitle: "Mood Trend", label: "Mood Score", record: "Record",
-      notePlaceholder: "Write down your thoughts..."
+      notePlaceholder: "Write down your thoughts...",
+      editTitle: "Edit Record",
+      save: "Save Changes",
+      cancel: "Cancel"
     }
   };
 
@@ -82,6 +93,12 @@
       options: { 
         responsive: true, 
         maintainAspectRatio: false,
+        onClick: (event, elements) => {
+          if (elements.length > 0) {
+            const index = elements[0].index;
+            startEditing(index);
+          }
+        },
         scales: {
           y: {
             min: 1,
@@ -115,6 +132,29 @@
     // 清空輸入框
     currentNote = "";
   }
+
+  function startEditing(index) {
+    editingIndex = index;
+    editScore = moodHistory[index].score;
+    editNote = moodHistory[index].note || "";
+  }
+
+  function saveEdit() {
+    if (editingIndex === null) return;
+    
+    moodHistory[editingIndex].score = editScore;
+    moodHistory[editingIndex].note = editNote;
+    moodHistory = [...moodHistory]; // 觸發儲存與反應
+
+    chart.data.datasets[0].data[editingIndex] = editScore;
+    chart.update();
+    
+    editingIndex = null;
+  }
+
+  function cancelEdit() {
+    editingIndex = null;
+  }
 </script>
 
 <section class="card-wrapper">
@@ -147,6 +187,27 @@
       </div>
     </div>
   </div>
+
+  <!-- 編輯彈窗 -->
+  {#if editingIndex !== null}
+    <div class="edit-overlay" on:click|self={cancelEdit}>
+      <div class="edit-modal">
+        <h3>{i18n[lang].editTitle} ({formatTime(moodHistory[editingIndex].time)})</h3>
+        <div class="input-row">
+          <input type="range" min="1" max="10" bind:value={editScore} />
+          <span class="score-display">{editScore}</span>
+        </div>
+        <textarea 
+          class="mood-note-input" 
+          bind:value={editNote}
+        ></textarea>
+        <div class="edit-actions">
+          <button class="cancel-btn" on:click={cancelEdit}>{i18n[lang].cancel}</button>
+          <button class="save-btn" on:click={saveEdit}>{i18n[lang].save}</button>
+        </div>
+      </div>
+    </div>
+  {/if}
 </section>
 
 <style>
@@ -204,4 +265,43 @@
   }
   .canvas-wrapper { height: 200px; width: 100%; filter: grayscale(1); }
   h3 { margin-top: 0; color: var(--text-color); font-size: 0.8rem; letter-spacing: 0.2em; text-transform: uppercase; }
+
+  /* 編輯彈窗樣式 */
+  .edit-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.5);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+    backdrop-filter: blur(2px);
+  }
+  .edit-modal {
+    background: var(--bg-color);
+    padding: 2rem;
+    border: 1px solid var(--border-color);
+    width: 90%;
+    max-width: 400px;
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+  }
+  .edit-actions {
+    display: flex;
+    gap: 1rem;
+    justify-content: flex-end;
+  }
+  .save-btn, .cancel-btn {
+    padding: 0.5rem 1rem;
+    font-size: 0.8rem;
+    cursor: pointer;
+    border-radius: 0;
+  }
+  .save-btn { background: var(--text-color); color: var(--bg-color); border: 1px solid var(--text-color); }
+  .cancel-btn { background: transparent; color: var(--text-color); border: 1px solid var(--border-color); }
+  .save-btn:hover { opacity: 0.8; }
 </style>
